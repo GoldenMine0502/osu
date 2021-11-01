@@ -45,12 +45,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             // When you put this multiplier higher, this will act like speed bonus.
             double fingerControlBonus = preSkills[2].GetAllStrainPeaks()[index] * 0.005;
+            double timingVarianceBonus = preSkills[3].GetAllStrainPeaks()[index] * 0.1;
 
             // When two values are both higher, you could get a lot of bonus.
             // Remark things you want to check other pp result.
             double totalBonus = Math.Pow(
                 (Math.Pow(0.99 + angleBonus, 1.1)) *
-                (Math.Pow(0.99 + fingerControlBonus, 1.1))
+                (Math.Pow(0.99 + fingerControlBonus, 1.1)) *
+                (Math.Pow(0.99 + timingVarianceBonus, 1.1))
                 , 1.0 / 1.1);
 
             double sliderBonus = 0.99 + preSkills[1].GetAllStrainPeaks()[index] * 1;

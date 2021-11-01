@@ -124,6 +124,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 new NoteVarianceAngle(beatmap, mods, clockRate),
                 new NoteVarianceSliderVelocity(beatmap, mods, clockRate),
                 new NoteVarianceFingerControl(beatmap, mods, clockRate),
+                new NoteVarianceTiming(beatmap, mods, clockRate),
             };
         }
 
