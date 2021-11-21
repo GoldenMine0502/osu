@@ -1,0 +1,54 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using osu.Game.Rulesets.Difficulty.Preprocessing;
+using osu.Game.Rulesets.Difficulty.Skills;
+using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Osu.Difficulty.Preprocessing;
+using osu.Game.Rulesets.Osu.Objects;
+
+namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
+{
+    public class PreDistanceVariance : OsuStrainSkill
+    {
+        private double currentStrain = 0;
+
+        private double skillMultiplier => 0.01;
+        private double strainDecayBase => 0.5;
+
+        public PreDistanceVariance(Mod[] mods) : base(mods)
+        {
+
+        }
+
+        private double strainValueOf(Skill[] preSkills, int index, DifficultyHitObject current)
+        {
+            if (current.BaseObject is Spinner || Previous.Count == 0 || Previous[0].BaseObject is Spinner)
+            {
+                return 0;
+            }
+
+            var osuCurrObj = (OsuDifficultyHitObject)current;
+            var osuLastObj = (OsuDifficultyHitObject)Previous[0];
+
+            double radius = ((OsuHitObject)osuCurrObj.BaseObject).Radius * osuCurrObj.ScalingFactor;
+
+            double variance = Math.Max(osuCurrObj.MovementDistance, radius) / Math.Max(osuLastObj.MovementDistance, radius);
+            if (variance < 1) variance = (1 / (variance * 2));
+            if (variance < 1) variance = 1;
+
+            return variance - 1;
+        }
+
+        protected override double CalculateInitialStrain(double time) => currentStrain * strainDecay(time - Previous[0].StartTime);
+        private double strainDecay(double ms) => Math.Pow(strainDecayBase, ms / 1000);
+
+        protected override double StrainValueAt(Skill[] preSkills, int index, DifficultyHitObject current)
+        {
+            currentStrain *= strainDecay(current.DeltaTime);
+            currentStrain += strainValueOf(preSkills, index, current) * skillMultiplier;
+
+            return currentStrain;
+        }
+    }
+}

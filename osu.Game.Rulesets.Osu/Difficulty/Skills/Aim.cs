@@ -15,21 +15,20 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// </summary>
     public class Aim : OsuStrainSkill
     {
-        public Aim(Mod[] mods)
+        public Aim(Mod[] mods, bool withSliders)
             : base(mods)
         {
             this.withSliders = withSliders;
-
-            windowGreat = hitWindowGreat;
-            //windowGreat = 0;
         }
+
+        private bool withSliders;
 
         protected override int HistoryLength => 2;
 
         private const double wide_angle_multiplier = 1.5;
         private const double acute_angle_multiplier = 2.0;
 
-        private double currentStrain = 1;
+        private double currentStrain = 0;
 
         private double skillMultiplier => 23.25;
         private double strainDecayBase => 0.15;
@@ -43,28 +42,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             var osuLastObj = (OsuDifficultyHitObject)Previous[0];
             var osuLastLastObj = (OsuDifficultyHitObject)Previous[1];
 
-            // Calculate the velocity to the current hitobject, which starts with a base distance / time assuming the last object is a hitcircle.
-            double currVelocity = osuCurrObj.JumpDistance / osuCurrObj.StrainTime;
+            var preVelocitySkill = ((StrainSkill) preSkills[withSliders ? 4 : 5]).GetAllStrainPeaks();
 
-            // But if the last object is a slider, then we extend the travel velocity through the slider into the current object.
-            if (osuLastObj.BaseObject is Slider)
-            {
-                double movementVelocity = osuCurrObj.MovementDistance / osuCurrObj.MovementTime; // calculate the movement velocity from slider end to current object
-                double travelVelocity = osuCurrObj.TravelDistance / osuCurrObj.TravelTime; // calculate the slider velocity from slider head to slider end.
-
-                currVelocity = Math.Max(currVelocity, movementVelocity + travelVelocity); // take the larger total combined velocity.
-            }
-
-            // As above, do the same for the previous hitobject.
-            double prevVelocity = osuLastObj.JumpDistance / osuLastObj.StrainTime;
-
-            if (osuLastLastObj.BaseObject is Slider)
-            {
-                double movementVelocity = osuLastObj.MovementDistance / osuLastObj.MovementTime;
-                double travelVelocity = osuLastObj.TravelDistance / osuLastObj.TravelTime;
-
-                prevVelocity = Math.Max(prevVelocity, movementVelocity + travelVelocity);
-            }
+            double currVelocity = preVelocitySkill[index];
+            double prevVelocity = preVelocitySkill[index - 1]; // As above, do the same for the previous hitobject.
 
             double angleBonus = 0;
             double aimStrain = currVelocity; // Start strain with regular velocity.

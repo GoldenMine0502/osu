@@ -11,6 +11,7 @@ using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Osu.Difficulty.Skills;
+using osu.Game.Rulesets.Osu.Difficulty.Skills.Pre;
 using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Scoring;
@@ -108,7 +109,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             return new Skill[]
             {
-                new Aim(mods),
+                new Aim(mods, true),
+                new Aim(mods, false),
                 new Speed(mods, hitWindowGreat),
                 new Flashlight(mods)
             };
@@ -116,9 +118,17 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
         protected override Skill[] CreatePreSkills(IBeatmap beatmap, Mod[] mods, double clockRate)
         {
+            HitWindows hitWindows = new OsuHitWindows();
+            hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
+
+            hitWindowGreat = hitWindows.WindowFor(HitResult.Great) / clockRate;
+
             return new Skill[]
             {
-
+                new PreSliderVelocityVariance(mods),
+                new PreDistanceVariance(mods),
+                new PreVelocity(mods, hitWindowGreat, true),
+                new PreVelocity(mods, hitWindowGreat, false),
             };
         }
 

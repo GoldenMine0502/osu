@@ -48,6 +48,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         /// </summary>
         public double TravelTime { get; private set; }
 
+        public float ScalingFactor { get; private set; }
+
         /// <summary>
         /// Milliseconds elapsed since the start time of the previous <see cref="OsuDifficultyHitObject"/>, with a minimum of 25ms.
         /// </summary>
@@ -75,26 +77,26 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
                 return;
 
             // We will scale distances by this factor, so we can assume a uniform CircleSize among beatmaps.
-            float scalingFactor = normalized_radius / (float)BaseObject.Radius;
+            ScalingFactor = normalized_radius / (float)BaseObject.Radius;
 
             if (BaseObject.Radius < 30)
             {
                 float smallCircleBonus = Math.Min(30 - (float)BaseObject.Radius, 5) / 50;
-                scalingFactor *= 1 + smallCircleBonus;
+                ScalingFactor *= 1 + smallCircleBonus;
             }
 
             Vector2 lastCursorPosition = getEndCursorPosition(lastObject);
-            JumpDistance = (BaseObject.StackedPosition * scalingFactor - lastCursorPosition * scalingFactor).Length;
+            JumpDistance = (BaseObject.StackedPosition * ScalingFactor - lastCursorPosition * ScalingFactor).Length;
 
             if (lastObject is Slider lastSlider)
             {
                 computeSliderCursorPosition(lastSlider);
-                TravelDistance = lastSlider.LazyTravelDistance * scalingFactor;
+                TravelDistance = lastSlider.LazyTravelDistance * ScalingFactor;
                 TravelTime = Math.Max(lastSlider.LazyTravelTime / clockRate, min_delta_time);
                 MovementTime = Math.Max(StrainTime - TravelTime, min_delta_time);
 
                 // Jump distance from the slider tail to the next object, as opposed to the lazy position of JumpDistance.
-                float tailJumpDistance = Vector2.Subtract(lastSlider.TailCircle.StackedPosition, BaseObject.StackedPosition).Length * scalingFactor;
+                float tailJumpDistance = Vector2.Subtract(lastSlider.TailCircle.StackedPosition, BaseObject.StackedPosition).Length * ScalingFactor;
 
                 // For hitobjects which continue in the direction of the slider, the player will normally follow through the slider,
                 // such that they're not jumping from the lazy position but rather from very close to (or the end of) the slider.
