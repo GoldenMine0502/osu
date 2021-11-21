@@ -72,6 +72,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             if (categoryRatings != null)
             {
+                categoryRatings.Add("AimStrain", Attributes.AimStrain);
                 categoryRatings.Add("Aim", aimValue);
                 categoryRatings.Add("Speed", speedValue);
                 categoryRatings.Add("Accuracy", accuracyValue);
@@ -130,7 +131,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             // Scale the aim value with accuracy _slightly_.
             aimValue *= 0.5 + accuracy / 2.0;
             // It is important to also consider accuracy difficulty when doing that.
-            aimValue *= 0.98 + Math.Pow(Attributes.OverallDifficulty, 2) / 2500;
+            //aimValue *= 0.98 + Math.Pow(Attributes.OverallDifficulty, 2) / 2500;
 
             return aimValue;
         }

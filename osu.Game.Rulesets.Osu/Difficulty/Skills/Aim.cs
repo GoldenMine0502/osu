@@ -18,6 +18,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         public Aim(Mod[] mods)
             : base(mods)
         {
+            this.withSliders = withSliders;
+
+            windowGreat = hitWindowGreat;
+            //windowGreat = 0;
         }
 
         protected override int HistoryLength => 2;
