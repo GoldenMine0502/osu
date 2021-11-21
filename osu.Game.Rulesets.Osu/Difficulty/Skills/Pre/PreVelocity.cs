@@ -9,12 +9,11 @@ using osu.Game.Rulesets.Osu.Objects;
 
 namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
 {
-    public class PreVelocity : OsuStrainSkill
+    public class PreVelocity : PreStrainSkill
     {
-        private double currentStrain = 0;
+        protected override double SkillMultiplier => 1.0;
 
-        private double skillMultiplier => 23.25;
-        private double strainDecayBase => 0.15;
+        protected override double StrainDecayBase => 0;
 
         private readonly double hitWindowGreat;
         private readonly bool withSliders;
@@ -24,8 +23,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
             this.hitWindowGreat = hitWindowGreat;
             this.withSliders = withSliders;
         }
-
-        private double strainValueOf(Skill[] preSkills, int index, DifficultyHitObject current)
+        protected override double StrainValueOf(Skill[] preSkills, int index, DifficultyHitObject current)
         {
             if (current.BaseObject is Spinner || Previous.Count == 0 || Previous[0].BaseObject is Spinner)
             {
@@ -35,10 +33,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
             var osuCurrObj = (OsuDifficultyHitObject)current;
             var osuLastObj = (OsuDifficultyHitObject)Previous[0];
 
-            var preSliderVelocityVariance = ((StrainSkill)preSkills[0]).GetAllStrainPeaks();
-            var preAngleVariance = ((StrainSkill)preSkills[1]).GetAllStrainPeaks();
-            var preDistanceVariance = ((StrainSkill)preSkills[2]).GetAllStrainPeaks();
-            var preFingerControlVariance = ((StrainSkill)preSkills[3]).GetAllStrainPeaks();
+            var preSliderVelocityVariance = ((PreStrainSkill)preSkills[0]).GetAllStrainPeaks();
+            var preAngleVariance = ((PreStrainSkill)preSkills[1]).GetAllStrainPeaks();
+            var preDistanceVariance = ((PreStrainSkill)preSkills[2]).GetAllStrainPeaks();
+            var preFingerControlVariance = ((PreStrainSkill)preSkills[3]).GetAllStrainPeaks();
 
             double sliderBonus = 0.99 + preSliderVelocityVariance[index];
             double totalBonus = Math.Pow(
@@ -63,17 +61,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
             currVelocity *= totalBonus;
 
             return currVelocity;
-        }
-
-        protected override double CalculateInitialStrain(double time) => currentStrain * strainDecay(time - Previous[0].StartTime);
-        private double strainDecay(double ms) => Math.Pow(strainDecayBase, ms / 1000);
-
-        protected override double StrainValueAt(Skill[] preSkills, int index, DifficultyHitObject current)
-        {
-            currentStrain *= strainDecay(current.DeltaTime);
-            currentStrain += strainValueOf(preSkills, index, current) * skillMultiplier;
-
-            return currentStrain;
         }
     }
 }

@@ -8,6 +8,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty
     public class OsuDifficultyAttributes : DifficultyAttributes
     {
         public double AimStrain { get; set; }
+        public double SliderVelocityVariance { get; set; }
+        public double AngleVariance { get; set; }
+        public double DistanceVariance { get; set; }
+        public double FingerControlVariance { get; set; }
         public double SpeedStrain { get; set; }
         public double FlashlightRating { get; set; }
         public double ApproachRate { get; set; }

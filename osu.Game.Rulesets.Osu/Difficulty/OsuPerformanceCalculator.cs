@@ -73,6 +73,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (categoryRatings != null)
             {
                 categoryRatings.Add("AimStrain", Attributes.AimStrain);
+                categoryRatings.Add("AngleVariance", Attributes.AngleVariance);
+                categoryRatings.Add("DistanceVariance", Attributes.DistanceVariance);
+                categoryRatings.Add("SliderVelocity", Attributes.SliderVelocityVariance);
+                categoryRatings.Add("FingerControl", Attributes.FingerControlVariance);
                 categoryRatings.Add("Aim", aimValue);
                 categoryRatings.Add("Speed", speedValue);
                 categoryRatings.Add("Accuracy", accuracyValue);

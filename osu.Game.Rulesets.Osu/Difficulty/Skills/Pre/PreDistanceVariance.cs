@@ -9,19 +9,18 @@ using osu.Game.Rulesets.Osu.Objects;
 
 namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
 {
-    public class PreDistanceVariance : OsuStrainSkill
+    public class PreDistanceVariance : PreStrainSkill
     {
-        private double currentStrain = 0;
+        protected override double SkillMultiplier => 0.01;
 
-        private double skillMultiplier => 0.01;
-        private double strainDecayBase => 0.5;
+        protected override double StrainDecayBase => 0.5;
 
         public PreDistanceVariance(Mod[] mods) : base(mods)
         {
 
         }
 
-        private double strainValueOf(Skill[] preSkills, int index, DifficultyHitObject current)
+        protected override double StrainValueOf(Skill[] preSkills, int index, DifficultyHitObject current)
         {
             if (current.BaseObject is Spinner || Previous.Count == 0 || Previous[0].BaseObject is Spinner)
             {
@@ -38,17 +37,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
             if (variance < 1) variance = 1;
 
             return variance - 1;
-        }
-
-        protected override double CalculateInitialStrain(double time) => currentStrain * strainDecay(time - Previous[0].StartTime);
-        private double strainDecay(double ms) => Math.Pow(strainDecayBase, ms / 1000);
-
-        protected override double StrainValueAt(Skill[] preSkills, int index, DifficultyHitObject current)
-        {
-            currentStrain *= strainDecay(current.DeltaTime);
-            currentStrain += strainValueOf(preSkills, index, current) * skillMultiplier;
-
-            return currentStrain;
         }
     }
 }

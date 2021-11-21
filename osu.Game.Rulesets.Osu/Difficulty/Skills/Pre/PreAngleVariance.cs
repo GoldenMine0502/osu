@@ -9,16 +9,15 @@ using osu.Game.Rulesets.Osu.Objects;
 
 namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
 {
-    public class PreAngleVariance : OsuStrainSkill
+    public class PreAngleVariance : PreStrainSkill
     {
-        private double currentStrain = 0;
-
         private const double angle_bonus_begin = Math.PI / 3;
         //private const double timing_threshold = 107; // 140bpm limit
         private const double timing_threshold = 75;
 
-        private double skillMultiplier => 0.35;
-        private double strainDecayBase => 0.15;
+        protected override double SkillMultiplier => 0.35;
+
+        protected override double StrainDecayBase => 0.15;
 
         private const double min_doubletap_nerf = 0.0; // minimum value (eventually on stacked)
         private const double max_doubletap_nerf = 1.0; // maximum value 
@@ -29,7 +28,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
 
         }
 
-        private double strainValueOf(Skill[] preSkills, int index, DifficultyHitObject current)
+        protected override double StrainValueOf(Skill[] preSkills, int index, DifficultyHitObject current)
         {
             OsuDifficultyHitObject osuCurrent = (OsuDifficultyHitObject)current;
 
@@ -40,7 +39,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
             double angle = osuCurrent.Angle ?? angle_bonus_begin;
 
             double angleBonus = 0.0;
-
 
             if (Previous.Count > 0)
             {
@@ -76,17 +74,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
             angleBonus *= multiplier;
 
             return angleBonus;
-        }
-
-        protected override double CalculateInitialStrain(double time) => currentStrain * strainDecay(time - Previous[0].StartTime);
-        private double strainDecay(double ms) => Math.Pow(strainDecayBase, ms / 1000);
-
-        protected override double StrainValueAt(Skill[] preSkills, int index, DifficultyHitObject current)
-        {
-            currentStrain *= strainDecay(current.DeltaTime);
-            currentStrain += strainValueOf(preSkills, index, current) * skillMultiplier;
-
-            return currentStrain;
         }
     }
 }

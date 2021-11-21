@@ -25,11 +25,11 @@ namespace osu.Game.Rulesets.Difficulty.Skills
         /// </summary>
         protected virtual int SectionLength => 400;
 
-        private double currentSectionPeak; // We also keep track of the peak strain level in the current section.
+        protected double currentSectionPeak; // We also keep track of the peak strain level in the current section.
 
-        private double currentSectionEnd;
+        protected double currentSectionEnd;
 
-        private readonly List<double> strainPeaks = new List<double>();
+        protected readonly List<double> strainPeaks = new List<double>();
 
         protected StrainSkill(Mod[] mods)
             : base(mods)
@@ -44,7 +44,7 @@ namespace osu.Game.Rulesets.Difficulty.Skills
         /// <summary>
         /// Process a <see cref="DifficultyHitObject"/> and update current strain values accordingly.
         /// </summary>
-        protected sealed override void Process(Skill[] preSkills, int index, DifficultyHitObject current)
+        protected override void Process(Skill[] preSkills, int index, DifficultyHitObject current)
         {
             // The first object doesn't generate a strain, so we begin with an incremented section end
             if (Previous.Count == 0)
@@ -63,7 +63,7 @@ namespace osu.Game.Rulesets.Difficulty.Skills
         /// <summary>
         /// Saves the current peak strain level to the list of strain peaks, which will be used to calculate an overall difficulty.
         /// </summary>
-        private void saveCurrentPeak()
+        protected void saveCurrentPeak()
         {
             strainPeaks.Add(currentSectionPeak);
         }
@@ -72,7 +72,7 @@ namespace osu.Game.Rulesets.Difficulty.Skills
         /// Sets the initial strain level for a new section.
         /// </summary>
         /// <param name="time">The beginning of the new section in milliseconds.</param>
-        private void startNewSectionFrom(double time)
+        protected void startNewSectionFrom(double time)
         {
             // The maximum strain of the new section is not zero by default
             // This means we need to capture the strain level at the beginning of the new section, and use that as the initial peak level.
@@ -91,8 +91,6 @@ namespace osu.Game.Rulesets.Difficulty.Skills
         /// including the peak of the current section.
         /// </summary>
         public IEnumerable<double> GetCurrentStrainPeaks() => strainPeaks.Append(currentSectionPeak);
-
-        public List<double> GetAllStrainPeaks() => strainPeaks;
 
         /// <summary>
         /// Returns the calculated difficulty value representing all <see cref="DifficultyHitObject"/>s that have been processed up to this point.

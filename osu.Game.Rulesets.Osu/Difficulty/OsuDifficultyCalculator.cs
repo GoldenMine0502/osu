@@ -45,6 +45,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double baseSpeedPerformance = Math.Pow(5 * Math.Max(1, speedRating / 0.0675) - 4, 3) / 100000;
             double baseFlashlightPerformance = 0.0;
 
+            double preSliderVelocityVariance = ((StrainSkill)preSkills[0]).DifficultyValue();
+            double preAngleVariance = ((StrainSkill)preSkills[1]).DifficultyValue();
+            double preDistanceVariance = ((StrainSkill)preSkills[2]).DifficultyValue();
+            double preFingerControlVariance = ((StrainSkill)preSkills[3]).DifficultyValue();
+
             if (mods.Any(h => h is OsuModFlashlight))
                 baseFlashlightPerformance = Math.Pow(flashlightRating, 2.0) * 25.0;
 
@@ -126,7 +131,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             return new Skill[]
             {
                 new PreSliderVelocityVariance(mods),
+                new PreAngleVariance(mods),
                 new PreDistanceVariance(mods),
+                new PreFingerControl(mods),
                 new PreVelocity(mods, hitWindowGreat, true),
                 new PreVelocity(mods, hitWindowGreat, false),
             };
