@@ -78,9 +78,9 @@ namespace osu.Game.Tests.Visual.SongSelect
                 {
                     AddStep("store selection", () => selection = carousel.SelectedBeatmapInfo);
                     if (isIterating)
-                        AddUntilStep("selection changed", () => carousel.SelectedBeatmapInfo != selection);
+                        AddUntilStep("selection changed", () => !carousel.SelectedBeatmapInfo.Equals(selection));
                     else
-                        AddUntilStep("selection not changed", () => carousel.SelectedBeatmapInfo == selection);
+                        AddUntilStep("selection not changed", () => carousel.SelectedBeatmapInfo.Equals(selection));
                 }
             }
         }
@@ -400,7 +400,7 @@ namespace osu.Game.Tests.Visual.SongSelect
             loadBeatmaps();
 
             AddStep("Sort by author", () => carousel.Filter(new FilterCriteria { Sort = SortMode.Author }, false));
-            AddAssert("Check zzzzz is at bottom", () => carousel.BeatmapSets.Last().Metadata.AuthorString == "zzzzz");
+            AddAssert("Check zzzzz is at bottom", () => carousel.BeatmapSets.Last().Metadata.Author.Username == "zzzzz");
             AddStep("Sort by artist", () => carousel.Filter(new FilterCriteria { Sort = SortMode.Artist }, false));
             AddAssert($"Check #{set_count} is at bottom", () => carousel.BeatmapSets.Last().Metadata.Title.EndsWith($"#{set_count}!", StringComparison.Ordinal));
         }
@@ -412,7 +412,8 @@ namespace osu.Game.Tests.Visual.SongSelect
 
             for (int i = 0; i < 20; i++)
             {
-                var set = createTestBeatmapSet(i);
+                // index + 1 because we are using OnlineID which should never be zero.
+                var set = createTestBeatmapSet(i + 1);
                 set.Metadata.Artist = "same artist";
                 set.Metadata.Title = "same title";
                 sets.Add(set);
@@ -421,10 +422,10 @@ namespace osu.Game.Tests.Visual.SongSelect
             loadBeatmaps(sets);
 
             AddStep("Sort by artist", () => carousel.Filter(new FilterCriteria { Sort = SortMode.Artist }, false));
-            AddAssert("Items remain in original order", () => carousel.BeatmapSets.Select((set, index) => set.ID == index).All(b => b));
+            AddAssert("Items remain in original order", () => carousel.BeatmapSets.Select((set, index) => set.OnlineID == index + 1).All(b => b));
 
             AddStep("Sort by title", () => carousel.Filter(new FilterCriteria { Sort = SortMode.Title }, false));
-            AddAssert("Items remain in original order", () => carousel.BeatmapSets.Select((set, index) => set.ID == index).All(b => b));
+            AddAssert("Items remain in original order", () => carousel.BeatmapSets.Select((set, index) => set.OnlineID == index + 1).All(b => b));
         }
 
         [Test]
@@ -435,20 +436,20 @@ namespace osu.Game.Tests.Visual.SongSelect
             for (int i = 0; i < 3; i++)
             {
                 var set = createTestBeatmapSet(i);
-                set.Beatmaps[0].StarDifficulty = 3 - i;
-                set.Beatmaps[2].StarDifficulty = 6 + i;
+                set.Beatmaps[0].StarRating = 3 - i;
+                set.Beatmaps[2].StarRating = 6 + i;
                 sets.Add(set);
             }
 
             loadBeatmaps(sets);
 
             AddStep("Filter to normal", () => carousel.Filter(new FilterCriteria { Sort = SortMode.Difficulty, SearchText = "Normal" }, false));
-            AddAssert("Check first set at end", () => carousel.BeatmapSets.First() == sets.Last());
-            AddAssert("Check last set at start", () => carousel.BeatmapSets.Last() == sets.First());
+            AddAssert("Check first set at end", () => carousel.BeatmapSets.First().Equals(sets.Last()));
+            AddAssert("Check last set at start", () => carousel.BeatmapSets.Last().Equals(sets.First()));
 
             AddStep("Filter to insane", () => carousel.Filter(new FilterCriteria { Sort = SortMode.Difficulty, SearchText = "Insane" }, false));
-            AddAssert("Check first set at start", () => carousel.BeatmapSets.First() == sets.First());
-            AddAssert("Check last set at end", () => carousel.BeatmapSets.Last() == sets.Last());
+            AddAssert("Check first set at start", () => carousel.BeatmapSets.First().Equals(sets.First()));
+            AddAssert("Check last set at end", () => carousel.BeatmapSets.Last().Equals(sets.Last()));
         }
 
         [Test]
@@ -662,7 +663,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                     eagerSelectedIDs.Add(carousel.SelectedBeatmapSet.ID);
                 });
 
-                AddAssert("selection changed", () => carousel.SelectedBeatmapInfo != manySets.First().Beatmaps.First());
+                AddAssert("selection changed", () => !carousel.SelectedBeatmapInfo.Equals(manySets.First().Beatmaps.First()));
             }
 
             AddAssert("Selection was random", () => eagerSelectedIDs.Count > 2);
@@ -684,9 +685,9 @@ namespace osu.Game.Tests.Visual.SongSelect
                 {
                     set.Beatmaps.Add(new BeatmapInfo
                     {
-                        Version = $"Stars: {i}",
+                        DifficultyName = $"Stars: {i}",
                         Ruleset = new OsuRuleset().RulesetInfo,
-                        StarDifficulty = i,
+                        StarRating = i,
                     });
                 }
 
@@ -759,13 +760,13 @@ namespace osu.Game.Tests.Visual.SongSelect
         }
 
         private void ensureRandomFetchSuccess() =>
-            AddAssert("ensure prev random fetch worked", () => selectedSets.Peek() == carousel.SelectedBeatmapSet);
+            AddAssert("ensure prev random fetch worked", () => selectedSets.Peek().Equals(carousel.SelectedBeatmapSet));
 
         private void waitForSelection(int set, int? diff = null) =>
             AddUntilStep($"selected is set{set}{(diff.HasValue ? $" diff{diff.Value}" : "")}", () =>
             {
                 if (diff != null)
-                    return carousel.SelectedBeatmapInfo == carousel.BeatmapSets.Skip(set - 1).First().Beatmaps.Skip(diff.Value - 1).First();
+                    return carousel.SelectedBeatmapInfo.Equals(carousel.BeatmapSets.Skip(set - 1).First().Beatmaps.Skip(diff.Value - 1).First());
 
                 return carousel.BeatmapSets.Skip(set - 1).First().Beatmaps.Contains(carousel.SelectedBeatmapInfo);
             });
@@ -838,7 +839,7 @@ namespace osu.Game.Tests.Visual.SongSelect
             return new BeatmapSetInfo
             {
                 ID = id,
-                OnlineBeatmapSetID = id,
+                OnlineID = id,
                 Hash = new MemoryStream(Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())).ComputeMD5Hash(),
                 Metadata = new BeatmapMetadata
                 {
@@ -867,9 +868,9 @@ namespace osu.Game.Tests.Visual.SongSelect
 
                 yield return new BeatmapInfo
                 {
-                    OnlineBeatmapID = id++ * 10,
-                    Version = version,
-                    StarDifficulty = diff,
+                    OnlineID = id++ * 10,
+                    DifficultyName = version,
+                    StarRating = diff,
                     Ruleset = new OsuRuleset().RulesetInfo,
                     BaseDifficulty = new BeatmapDifficulty
                     {
@@ -884,7 +885,7 @@ namespace osu.Game.Tests.Visual.SongSelect
             var toReturn = new BeatmapSetInfo
             {
                 ID = id,
-                OnlineBeatmapSetID = id,
+                OnlineID = id,
                 Hash = new MemoryStream(Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())).ComputeMD5Hash(),
                 Metadata = new BeatmapMetadata
                 {
@@ -900,11 +901,11 @@ namespace osu.Game.Tests.Visual.SongSelect
             {
                 toReturn.Beatmaps.Add(new BeatmapInfo
                 {
-                    OnlineBeatmapID = b * 10,
+                    OnlineID = b * 10,
                     Path = $"extra{b}.osu",
-                    Version = $"Extra {b}",
+                    DifficultyName = $"Extra {b}",
                     Ruleset = rulesets.GetRuleset((b - 1) % 4),
-                    StarDifficulty = 2,
+                    StarRating = 2,
                     BaseDifficulty = new BeatmapDifficulty
                     {
                         OverallDifficulty = 3.5f,

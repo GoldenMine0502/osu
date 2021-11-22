@@ -14,8 +14,10 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
+using osu.Game.Extensions;
 using osu.Game.IO.Archives;
 using osu.Game.Models;
+using osu.Game.Overlays.Notifications;
 using osu.Game.Stores;
 using osu.Game.Tests.Resources;
 using Realms;
@@ -347,15 +349,15 @@ namespace osu.Game.Tests.Database
                 var firstFile = imported.Files.First();
 
                 long originalLength;
-                using (var stream = storage.GetStream(firstFile.File.StoragePath))
+                using (var stream = storage.GetStream(firstFile.File.GetStoragePath()))
                     originalLength = stream.Length;
 
-                using (var stream = storage.GetStream(firstFile.File.StoragePath, FileAccess.Write, FileMode.Create))
+                using (var stream = storage.GetStream(firstFile.File.GetStoragePath(), FileAccess.Write, FileMode.Create))
                     stream.WriteByte(0);
 
                 var importedSecondTime = await LoadOszIntoStore(importer, realmFactory.Context);
 
-                using (var stream = storage.GetStream(firstFile.File.StoragePath))
+                using (var stream = storage.GetStream(firstFile.File.GetStoragePath()))
                     Assert.AreEqual(stream.Length, originalLength, "Corruption was not fixed on second import");
 
                 // check the newly "imported" beatmap is actually just the restored previous import. since it matches hash.
@@ -364,6 +366,34 @@ namespace osu.Game.Tests.Database
 
                 checkBeatmapSetCount(realmFactory.Context, 1);
                 checkSingleReferencedFileCount(realmFactory.Context, 18);
+            });
+        }
+
+        [Test]
+        public void TestModelCreationFailureDoesntReturn()
+        {
+            RunTestWithRealmAsync(async (realmFactory, storage) =>
+            {
+                using var importer = new BeatmapImporter(realmFactory, storage);
+                using var store = new RealmRulesetStore(realmFactory, storage);
+
+                var progressNotification = new ImportProgressNotification();
+
+                var zipStream = new MemoryStream();
+
+                using (var zip = ZipArchive.Create())
+                    zip.SaveTo(zipStream, new ZipWriterOptions(CompressionType.Deflate));
+
+                var imported = await importer.Import(
+                    progressNotification,
+                    new ImportTask(zipStream, string.Empty)
+                );
+
+                checkBeatmapSetCount(realmFactory.Context, 0);
+                checkBeatmapCount(realmFactory.Context, 0);
+
+                Assert.IsEmpty(imported);
+                Assert.AreEqual(ProgressNotificationState.Cancelled, progressNotification.State);
             });
         }
 
@@ -482,7 +512,10 @@ namespace osu.Game.Tests.Database
                 var metadata = new RealmBeatmapMetadata
                 {
                     Artist = "SomeArtist",
-                    Author = "SomeAuthor"
+                    Author =
+                    {
+                        Username = "SomeAuthor"
+                    }
                 };
 
                 var ruleset = realmFactory.Context.All<RealmRuleset>().First();

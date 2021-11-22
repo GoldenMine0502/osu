@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 using Humanizer;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osu.Game.Extensions;
 using osu.Game.IO;
 using osu.Game.IO.Archives;
 using osu.Game.IPC;
@@ -30,7 +30,7 @@ namespace osu.Game.Database
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>
     /// <typeparam name="TFileModel">The associated file join type.</typeparam>
-    public abstract class ArchiveModelManager<TModel, TFileModel> : IModelManager<TModel>, IModelFileManager<TModel, TFileModel>
+    public abstract class ArchiveModelManager<TModel, TFileModel> : IModelImporter<TModel>, IModelManager<TModel>, IModelFileManager<TModel, TFileModel>
         where TModel : class, IHasFiles<TFileModel>, IHasPrimaryKey, ISoftDelete
         where TFileModel : class, INamedFileInfo, IHasPrimaryKey, new()
     {
@@ -63,17 +63,13 @@ namespace osu.Game.Database
         /// Fired when a new or updated <typeparamref name="TModel"/> becomes available in the database.
         /// This is not guaranteed to run on the update thread.
         /// </summary>
-        public IBindable<WeakReference<TModel>> ItemUpdated => itemUpdated;
-
-        private readonly Bindable<WeakReference<TModel>> itemUpdated = new Bindable<WeakReference<TModel>>();
+        public event Action<TModel> ItemUpdated;
 
         /// <summary>
         /// Fired when a <typeparamref name="TModel"/> is removed from the database.
         /// This is not guaranteed to run on the update thread.
         /// </summary>
-        public IBindable<WeakReference<TModel>> ItemRemoved => itemRemoved;
-
-        private readonly Bindable<WeakReference<TModel>> itemRemoved = new Bindable<WeakReference<TModel>>();
+        public event Action<TModel> ItemRemoved;
 
         public virtual IEnumerable<string> HandledExtensions => new[] { @".zip" };
 
@@ -93,8 +89,8 @@ namespace osu.Game.Database
             ContextFactory = contextFactory;
 
             ModelStore = modelStore;
-            ModelStore.ItemUpdated += item => handleEvent(() => itemUpdated.Value = new WeakReference<TModel>(item));
-            ModelStore.ItemRemoved += item => handleEvent(() => itemRemoved.Value = new WeakReference<TModel>(item));
+            ModelStore.ItemUpdated += item => handleEvent(() => ItemUpdated?.Invoke(item));
+            ModelStore.ItemRemoved += item => handleEvent(() => ItemRemoved?.Invoke(item));
 
             exportStorage = storage.GetStorageForDirectory(@"exports");
 
@@ -197,7 +193,7 @@ namespace osu.Game.Database
             else
             {
                 notification.CompletionText = imported.Count == 1
-                    ? $"Imported {imported.First().Value}!"
+                    ? $"Imported {imported.First().Value.GetDisplayString()}!"
                     : $"Imported {imported.Count} {HumanisedModelName}s!";
 
                 if (imported.Count > 0 && PostImport != null)
@@ -268,7 +264,7 @@ namespace osu.Game.Database
                 model = CreateModel(archive);
 
                 if (model == null)
-                    return Task.FromResult<ILive<TModel>>(new EntityFrameworkLive<TModel>(null));
+                    return Task.FromResult<ILive<TModel>>(null);
             }
             catch (TaskCanceledException)
             {
@@ -329,7 +325,7 @@ namespace osu.Game.Database
 
                 foreach (TFileModel file in hashableFiles)
                 {
-                    using (Stream s = Files.Store.GetStream(file.FileInfo.StoragePath))
+                    using (Stream s = Files.Store.GetStream(file.FileInfo.GetStoragePath()))
                         s.CopyTo(hashable);
                 }
 
@@ -484,7 +480,7 @@ namespace osu.Game.Database
             using (var archive = ZipArchive.Create())
             {
                 foreach (var file in model.Files)
-                    archive.AddEntry(file.Filename, Files.Storage.GetStream(file.FileInfo.StoragePath));
+                    archive.AddEntry(file.Filename, Files.Storage.GetStream(file.FileInfo.GetStoragePath()));
 
                 archive.SaveTo(outputStream);
             }

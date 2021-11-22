@@ -7,8 +7,10 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
+using osu.Game.Extensions;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Catch;
 using osu.Game.Rulesets.Mania;
@@ -40,9 +42,9 @@ namespace osu.Game.Tests.Visual.SongSelect
 
             base.SetUpSteps();
 
-            User getUser(int? rulesetID)
+            APIUser getUser(int? rulesetID)
             {
-                return new User
+                return new APIUser
                 {
                     Username = @"Dummy",
                     Id = 1001,
@@ -101,8 +103,8 @@ namespace osu.Game.Tests.Visual.SongSelect
         {
             BeatmapSetInfo catchSet = null, mixedSet = null;
 
-            AddStep("create catch beatmapset", () => catchSet = importBeatmapSet(0, new[] { new CatchRuleset().RulesetInfo }));
-            AddStep("create mixed beatmapset", () => mixedSet = importBeatmapSet(1,
+            AddStep("create catch beatmapset", () => catchSet = importBeatmapSet(1, new[] { new CatchRuleset().RulesetInfo }));
+            AddStep("create mixed beatmapset", () => mixedSet = importBeatmapSet(2,
                 new[] { new TaikoRuleset().RulesetInfo, new CatchRuleset().RulesetInfo, new ManiaRuleset().RulesetInfo }));
 
             AddAssert("all sets imported", () => ensureAllBeatmapSetsImported(new[] { catchSet, mixedSet }));
@@ -119,8 +121,8 @@ namespace osu.Game.Tests.Visual.SongSelect
         {
             BeatmapSetInfo osuSet = null, mixedSet = null;
 
-            AddStep("create osu! beatmapset", () => osuSet = importBeatmapSet(0, new[] { new OsuRuleset().RulesetInfo }));
-            AddStep("create mixed beatmapset", () => mixedSet = importBeatmapSet(1,
+            AddStep("create osu! beatmapset", () => osuSet = importBeatmapSet(1, new[] { new OsuRuleset().RulesetInfo }));
+            AddStep("create mixed beatmapset", () => mixedSet = importBeatmapSet(2,
                 new[] { new TaikoRuleset().RulesetInfo, new CatchRuleset().RulesetInfo, new ManiaRuleset().RulesetInfo }));
 
             AddAssert("all sets imported", () => ensureAllBeatmapSetsImported(new[] { osuSet, mixedSet }));
@@ -137,8 +139,8 @@ namespace osu.Game.Tests.Visual.SongSelect
         {
             BeatmapSetInfo osuSet = null, mixedSet = null;
 
-            AddStep("create osu! beatmapset", () => osuSet = importBeatmapSet(0, new[] { new OsuRuleset().RulesetInfo }));
-            AddStep("create mixed beatmapset", () => mixedSet = importBeatmapSet(1,
+            AddStep("create osu! beatmapset", () => osuSet = importBeatmapSet(1, new[] { new OsuRuleset().RulesetInfo }));
+            AddStep("create mixed beatmapset", () => mixedSet = importBeatmapSet(2,
                 new[] { new TaikoRuleset().RulesetInfo, new CatchRuleset().RulesetInfo, new TaikoRuleset().RulesetInfo }));
 
             AddAssert("all sets imported", () => ensureAllBeatmapSetsImported(new[] { osuSet, mixedSet }));
@@ -155,8 +157,8 @@ namespace osu.Game.Tests.Visual.SongSelect
         {
             BeatmapSetInfo osuSet = null, maniaSet = null;
 
-            AddStep("create osu! beatmapset", () => osuSet = importBeatmapSet(0, new[] { new OsuRuleset().RulesetInfo }));
-            AddStep("create mania beatmapset", () => maniaSet = importBeatmapSet(1, Enumerable.Repeat(new ManiaRuleset().RulesetInfo, 10)));
+            AddStep("create osu! beatmapset", () => osuSet = importBeatmapSet(1, new[] { new OsuRuleset().RulesetInfo }));
+            AddStep("create mania beatmapset", () => maniaSet = importBeatmapSet(2, Enumerable.Repeat(new ManiaRuleset().RulesetInfo, 10)));
 
             AddAssert("all sets imported", () => ensureAllBeatmapSetsImported(new[] { osuSet, maniaSet }));
 
@@ -179,16 +181,16 @@ namespace osu.Game.Tests.Visual.SongSelect
             var beatmapSet = new BeatmapSetInfo
             {
                 Hash = Guid.NewGuid().ToString(),
-                OnlineBeatmapSetID = importID,
+                OnlineID = importID,
                 Metadata = metadata,
                 Beatmaps = difficultyRulesets.Select((ruleset, difficultyIndex) => new BeatmapInfo
                 {
-                    OnlineBeatmapID = importID * 1024 + difficultyIndex,
+                    OnlineID = importID * 1024 + difficultyIndex,
                     Metadata = metadata,
                     BaseDifficulty = new BeatmapDifficulty(),
                     Ruleset = ruleset,
-                    StarDifficulty = difficultyIndex + 1,
-                    Version = $"SR{difficultyIndex + 1}"
+                    StarRating = difficultyIndex + 1,
+                    DifficultyName = $"SR{difficultyIndex + 1}"
                 }).ToList()
             };
 
@@ -202,11 +204,7 @@ namespace osu.Game.Tests.Visual.SongSelect
             AddStep("present beatmap", () => Game.PresentBeatmap(getImport()));
 
             AddUntilStep("wait for song select", () => Game.ScreenStack.CurrentScreen is Screens.Select.SongSelect);
-            AddUntilStep("recommended beatmap displayed", () =>
-            {
-                int? expectedID = getImport().Beatmaps[expectedDiff - 1].OnlineBeatmapID;
-                return Game.Beatmap.Value.BeatmapInfo.OnlineBeatmapID == expectedID;
-            });
+            AddUntilStep("recommended beatmap displayed", () => Game.Beatmap.Value.BeatmapInfo.MatchesOnlineID(getImport().Beatmaps[expectedDiff - 1]));
         }
     }
 }
