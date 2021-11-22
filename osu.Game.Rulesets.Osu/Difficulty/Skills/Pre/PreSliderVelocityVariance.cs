@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
 {
     public class PreSliderVelocityVariance : PreStrainSkill
     {
-        protected override double SkillMultiplier => 0.1;
+        protected override double SkillMultiplier => 1;
 
         protected override double StrainDecayBase => 0.5;
 

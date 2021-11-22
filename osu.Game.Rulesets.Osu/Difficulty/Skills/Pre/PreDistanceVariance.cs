@@ -11,9 +11,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
 {
     public class PreDistanceVariance : PreStrainSkill
     {
-        protected override double SkillMultiplier => 0.01;
+        protected override double SkillMultiplier => 0.02;
 
-        protected override double StrainDecayBase => 0.5;
+        protected override double StrainDecayBase => 0.75;
 
         public PreDistanceVariance(Mod[] mods) : base(mods)
         {
@@ -30,13 +30,20 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
             var osuCurrObj = (OsuDifficultyHitObject)current;
             var osuLastObj = (OsuDifficultyHitObject)Previous[0];
 
-            double radius = ((OsuHitObject)osuCurrObj.BaseObject).Radius * osuCurrObj.ScalingFactor;
+            double variance = 0;
 
-            double variance = Math.Max(osuCurrObj.MovementDistance, radius) / Math.Max(osuLastObj.MovementDistance, radius);
-            if (variance < 1) variance = (1 / (variance * 2));
-            if (variance < 1) variance = 1;
+            if (Math.Max(osuCurrObj.StrainTime, osuLastObj.StrainTime) < 1.25 * Math.Min(osuCurrObj.StrainTime, osuLastObj.StrainTime)) // If rhythms are the same.
+            {
+                double radius = ((OsuHitObject)osuCurrObj.BaseObject).Radius * osuCurrObj.ScalingFactor;
 
-            return variance - 1;
+                double firstMultiplier = Math.Max(osuCurrObj.MovementDistance, radius) / Math.Max(osuLastObj.MovementDistance, radius);
+                if (firstMultiplier < 1) firstMultiplier = (1 + 1 / variance) / 2;
+
+                variance = Math.Clamp(firstMultiplier, 1.0, 1.5) - 1;
+            }
+
+
+            return variance;
         }
     }
 }

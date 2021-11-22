@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
 {
     public class PreFingerControl : PreStrainSkill
     {
-        protected override double SkillMultiplier => 0.01;
+        protected override double SkillMultiplier => 0.005;
 
         protected override double StrainDecayBase => 0.5;
 
@@ -33,11 +33,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
 
             // Calculates the percentage of alternative.
             // 160bpm meant the bpm starting alternative to hit
-            // When bpm is 160, it gives 0.
-            // When bpm is 210, 1.
-            // As a result, when bpm is 210, we consider the note has 100% of percentage of alternative
+            // When bpm is 150, it gives 0.
+            // When bpm is 200, 1.
+            // As a result, when bpm is 200, we consider the note has 100% of percentage of alternative
             double deltaTimeToBpm = 15000 / current.DeltaTime;
-            double probablityAlternative = Math.Max((deltaTimeToBpm - 160.0), 0) / (210.0 - 160.0);
+            double probablityAlternative = Math.Max((deltaTimeToBpm - 150.0), 0) / (200.0 - 150.0);
 
             // short (stacked) stream nerf
             double distance = osuCurrent.JumpDistance + osuCurrent.TravelDistance;

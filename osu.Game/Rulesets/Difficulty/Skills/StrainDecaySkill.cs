@@ -38,7 +38,10 @@ namespace osu.Game.Rulesets.Difficulty.Skills
 
         protected override double StrainValueAt(Skill[] preSkills, int index, DifficultyHitObject current)
         {
-            CurrentStrain *= strainDecay(current.DeltaTime);
+            if (StrainDecayBase > 0)
+                CurrentStrain *= strainDecay(current.DeltaTime);
+            else
+                CurrentStrain = 0;
             CurrentStrain += StrainValueOf(preSkills, index, current) * SkillMultiplier;
 
             return CurrentStrain;

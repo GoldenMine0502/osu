@@ -37,12 +37,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills.Pre
             var preAngleVariance = ((PreStrainSkill)preSkills[1]).GetAllStrainPeaks();
             var preDistanceVariance = ((PreStrainSkill)preSkills[2]).GetAllStrainPeaks();
             var preFingerControlVariance = ((PreStrainSkill)preSkills[3]).GetAllStrainPeaks();
+            var preRhythmBonus = ((PreStrainSkill)preSkills[4]).GetAllStrainPeaks();
 
-            double sliderBonus = 0.99 + preSliderVelocityVariance[index];
+            double sliderBonus = 0.95 + preSliderVelocityVariance[index];
             double totalBonus = Math.Pow(
-                Math.Pow(0.99 + preAngleVariance[index], 1.1) *
-                Math.Pow(0.99 + preDistanceVariance[index], 1.1) *
-                Math.Pow(0.99 + preFingerControlVariance[index], 1.1)
+                Math.Pow(0.95 + preAngleVariance[index], 1.1) *
+                Math.Pow(0.95 + preDistanceVariance[index], 1.1) *
+                Math.Pow(0.95 + preFingerControlVariance[index], 1.1) *
+                Math.Pow(0.95 + preRhythmBonus[index], 1.1)
                 , (1.0 / 1.1));
 
             // Calculate the velocity to the current hitobject, which starts with a base distance / time assuming the last object is a hitcircle.
