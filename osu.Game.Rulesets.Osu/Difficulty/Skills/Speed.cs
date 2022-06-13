@@ -21,7 +21,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const double min_speed_bonus = 75; // ~200BPM
         private const double speed_balancing_factor = 40;
 
-        private double skillMultiplier => 1375;
+        private double skillMultiplier => 1300;
         private double strainDecayBase => 0.3;
 
         private double currentStrain;
