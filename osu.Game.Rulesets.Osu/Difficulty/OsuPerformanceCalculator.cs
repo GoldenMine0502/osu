@@ -39,7 +39,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             countMiss = score.Statistics.GetValueOrDefault(HitResult.Miss);
             effectiveMissCount = calculateEffectiveMissCount(osuAttributes);
 
-            double multiplier = 1.12; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things.
+            double multiplier = 1.05; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things.
 
             if (score.Mods.Any(m => m is OsuModNoFail))
                 multiplier *= Math.Max(0.90, 1.0 - 0.02 * effectiveMissCount);
@@ -58,11 +58,13 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double aimValue = computeAimValue(score, osuAttributes);
             double speedValue = computeSpeedValue(score, osuAttributes);
             double accuracyValue = computeAccuracyValue(score, osuAttributes);
+            double alternativeValue = computeAlternativeValue(score, osuAttributes);
             double flashlightValue = computeFlashlightValue(score, osuAttributes);
             double totalValue =
                 Math.Pow(
                     Math.Pow(aimValue, 1.1) +
                     Math.Pow(speedValue, 1.1) +
+                    Math.Pow(alternativeValue, 1.1) +
                     Math.Pow(accuracyValue, 1.1) +
                     Math.Pow(flashlightValue, 1.1), 1.0 / 1.1
                 ) * multiplier;
@@ -71,6 +73,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             {
                 Aim = aimValue,
                 Speed = speedValue,
+                Alternative = alternativeValue,
                 Accuracy = accuracyValue,
                 Flashlight = flashlightValue,
                 EffectiveMissCount = effectiveMissCount,
@@ -235,6 +238,38 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             flashlightValue *= 0.98 + Math.Pow(attributes.OverallDifficulty, 2) / 2500;
 
             return flashlightValue;
+        }
+
+        private double computeAlternativeValue(ScoreInfo score, OsuDifficultyAttributes attributes)
+        {
+            double rawAlternative = attributes.AlternativeDiffiuclty;
+            double alternativeValue = Math.Pow(5.0 * Math.Max(1.0, rawAlternative / 0.0675) - 4.0, 3.0) / 100000.0;
+
+            double lengthBonus = 0.95 + 0.4 * Math.Min(1.0, totalHits / 2000.0) +
+                                 (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0);
+            alternativeValue *= lengthBonus;
+
+            if (score.Mods.Any(m => m is OsuModTouchDevice))
+                alternativeValue = Math.Pow(alternativeValue, 0.8);
+
+            //double alternativeValue = Math.Pow(rawAlternative, 2.0) * 25.0;
+
+            // Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
+            if (effectiveMissCount > 0)
+                alternativeValue *= 0.97 * Math.Pow(1 - Math.Pow(effectiveMissCount / totalHits, 0.775), Math.Pow(effectiveMissCount, .875));
+
+            alternativeValue *= getComboScalingFactor(attributes);
+
+            // Account for shorter maps having a higher ratio of 0 combo/100 combo flashlight radius.
+            //alternativeValue *= 0.7 + 0.1 * Math.Min(1.0, totalHits / 200.0) +
+            //                   (totalHits > 200 ? 0.2 * Math.Min(1.0, (totalHits - 200) / 200.0) : 0.0);
+
+            // Scale the flashlight value with accuracy _slightly_.
+            alternativeValue *= 0.5 + accuracy / 2.0;
+            // It is important to also consider accuracy difficulty when doing that.
+            alternativeValue *= 0.98 + Math.Pow(attributes.OverallDifficulty, 2) / 2500;
+
+            return alternativeValue;
         }
 
         private double calculateEffectiveMissCount(OsuDifficultyAttributes attributes)
