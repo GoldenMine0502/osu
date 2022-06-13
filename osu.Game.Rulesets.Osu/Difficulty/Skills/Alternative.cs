@@ -161,14 +161,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             double distanceComplexity = calculateTotalDistanceRatio(current);
             double alternativeComplexity = calculateAlternativeComplexity(current);
 
-            var currObj = (OsuDifficultyHitObject)current;
-            string timeStr = (int)(currObj.StartTime / 60000) + ":" + (int)((currObj.StartTime - ((int)currObj.StartTime / 60000) * 60000) / 1000) + "." + (int)Math.Round(currObj.StartTime % 1000);
+            //var currObj = (OsuDifficultyHitObject)current;
+            //string timeStr = (int)(currObj.StartTime / 60000) + ":" + (int)((currObj.StartTime - ((int)currObj.StartTime / 60000) * 60000) / 1000) + "." + (int)Math.Round(currObj.StartTime % 1000);
 
 
             double value = distanceComplexity + alternativeComplexity;
 
-            if (value > 2)
-                Console.WriteLine(distanceComplexity + ", " + alternativeComplexity + ", " + timeStr);
+            //if (value > 2)
+            //    Console.WriteLine(distanceComplexity + ", " + alternativeComplexity + ", " + timeStr);
 
             return value;
         }
