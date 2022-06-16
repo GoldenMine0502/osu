@@ -184,7 +184,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 if (Previous[i].BaseObject is Slider) // bpm change was from a slider, this is easier typically than circle -> circle
                     effectiveRatio *= 0.5;
 
-                if (Math.Max(currDelta, prevDelta) < 1.1 * Math.Min(currDelta, prevDelta)) // previous increase happened a note ago, 1/1->1/2-1/4, dont want to buff this.
+                if (Math.Max(currDelta, prevDelta) < 1.25 * Math.Min(currDelta, prevDelta)) // previous increase happened a note ago, 1/1->1/2-1/4, dont want to buff this.
                     effectiveRatio *= 0.25;
 
                 double angleRatio = calcAngleDifference(prevAngle, currAngle);
