@@ -20,7 +20,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const double total_distance_ratio_multiplier = 0.25;
 
         private const double angle_multiplier = 0.1;
-        private const double total_angle_ratio_multiplier = 4;
+        private const double total_angle_ratio_multiplier = 5;
 
         private const int history_time_max = 5000; // 5 seconds of complexities max.
 
@@ -138,7 +138,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             return sliderVelocityComplexitySum * total_slider_velocity_multiplier;
         }
 
-        private double calculateAlternativeComplexity(DifficultyHitObject current)
+        private double calculateAngleComplexity(DifficultyHitObject current)
         {
             double angleComplexitySum = 0;
 
@@ -228,7 +228,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private double strainValueOf(DifficultyHitObject current)
         {
             double distanceComplexity = calculateDistanceRatioComplexity(current);
-            double alternativeComplexity = calculateAlternativeComplexity(current);
+            double alternativeComplexity = calculateAngleComplexity(current);
             double sliderVelocityComplexity = calculateSliderVelocityComplexity(current);
 
             //var currObj = (OsuDifficultyHitObject)current;
