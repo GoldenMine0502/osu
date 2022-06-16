@@ -242,7 +242,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
         private double computeAlternativeValue(ScoreInfo score, OsuDifficultyAttributes attributes)
         {
-            double rawAlternative = attributes.AlternativeDiffiuclty;
+            double rawAlternative = attributes.AlternativeDifficulty;
             double alternativeValue = Math.Pow(5.0 * Math.Max(1.0, rawAlternative / 0.0675) - 4.0, 3.0) / 100000.0;
 
             double lengthBonus = 0.95 + 0.4 * Math.Min(1.0, totalHits / 2000.0) +

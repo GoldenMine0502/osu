@@ -29,7 +29,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         /// The difficulty corresponding to the flashlight skill.
         /// </summary>
         [JsonProperty("alternative_difficulty")]
-        public double AlternativeDiffiuclty { get; set; }
+        public double AlternativeDifficulty { get; set; }
 
         /// <summary>
         /// The difficulty corresponding to the flashlight skill.
