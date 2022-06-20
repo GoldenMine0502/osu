@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 {
     public class Alternative : OsuStrainSkill
     {
-        private const double slider_velocity_cap = 0.5;
+        private const double slider_velocity_cap = 0.1;
         private const double slider_velocity_multiplier = 1.5;
         private const double total_slider_velocity_multiplier = 1;
 
@@ -20,7 +20,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const double total_distance_ratio_multiplier = 0.25;
 
         private const double angle_multiplier = 0.1;
-        private const double total_angle_ratio_multiplier = 5;
+        private const double total_angle_ratio_multiplier = 4;
 
         private const int history_time_max = 5000; // 5 seconds of complexities max.
 
@@ -109,26 +109,36 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             while (rhythmStart < Previous.Count - 2 && current.StartTime - Previous[rhythmStart].StartTime < history_time_max)
                 rhythmStart++;
 
+            double lastTravelVelocity = -1;
+            //double lastTravelVelocityTime = -1;
+
             for (int i = rhythmStart; i > 0; i--)
             {
                 OsuDifficultyHitObject currObj = (OsuDifficultyHitObject)Previous[i - 1];
                 OsuDifficultyHitObject prevObj = (OsuDifficultyHitObject)Previous[i];
-                OsuDifficultyHitObject lastObj = (OsuDifficultyHitObject)Previous[i + 1];
+                //OsuDifficultyHitObject lastObj = (OsuDifficultyHitObject)Previous[i + 1];
 
                 double currHistoricalDecay = (history_time_max - (current.StartTime - currObj.StartTime)) / history_time_max; // scales note 0 to 1 from history to now
 
                 // only sliders affect to result
-                if (prevObj.BaseObject is Slider && lastObj.BaseObject is Slider)
+                if (prevObj.BaseObject is Slider)
                 {
                     double currTravelVelocity = prevObj.TravelDistance / prevObj.TravelTime;
-                    double pastTravelVelocity = lastObj.TravelDistance / lastObj.TravelTime;
 
-                    // calculates velocity changes.
-                    // gives a cap to ignore small velocity changes.
-                    // gives a multiplier to mangify big slider velocity changes.
-                    double result = Math.Max(0, Math.Abs(pastTravelVelocity - currTravelVelocity) - slider_velocity_cap) * slider_velocity_multiplier;
+                    if (lastTravelVelocity > 0)
+                    {
+                        // calculates velocity changes.
+                        // gives a cap to ignore small velocity changes.
+                        // gives a multiplier to mangify big slider velocity changes.
+                        double result = Math.Max(0, Math.Abs(lastTravelVelocity - currTravelVelocity) - slider_velocity_cap) * slider_velocity_multiplier;
 
-                    sliderVelocityComplexitySum += result * currHistoricalDecay;
+                        sliderVelocityComplexitySum += result * currHistoricalDecay;
+                    }
+
+
+
+                    lastTravelVelocity = currTravelVelocity;
+                    //lastTravelVelocityTime = current.StartTime;
 
                     if (sliderVelocityComplexitySum < 0)
                         sliderVelocityComplexitySum = 0;
@@ -217,9 +227,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             }
 
             // small change nerf
-            if (currAngle - prevAngle < angle45)
+            if (angleDifference < angle45)
             {
-                value -= Math.Sin(angleDifference - Math.Min(angleDifference, angle45) / 2);
+                value -= Math.Sin(angleDifference - Math.Min(angleDifference, angle45)) / 2;
             }
 
             return Math.Pow(value, 3);
