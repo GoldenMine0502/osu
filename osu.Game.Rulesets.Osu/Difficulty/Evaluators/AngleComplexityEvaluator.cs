@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
     public class AngleComplexityEvaluator
     {
         private const double angle_multiplier = 5;
-        private const double total_angle_ratio_multiplier = 2;
+        private const double total_angle_ratio_multiplier = 1;
         private const int history_time_max = 5000; // 5 seconds of calculatingAngleComplexity max.
 
         public static double EvaluateDifficultyOf(DifficultyHitObject current)
@@ -27,7 +27,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
 
             for (int i = rhythmStart; i > 0; i--)
             {
-                OsuDifficultyHitObject nextObj = (OsuDifficultyHitObject)current.Next(0);
+                OsuDifficultyHitObject nextObj = (OsuDifficultyHitObject)current.Previous(i - 2);
                 OsuDifficultyHitObject currObj = (OsuDifficultyHitObject)current.Previous(i - 1);
                 OsuDifficultyHitObject prevObj = (OsuDifficultyHitObject)current.Previous(i);
                 OsuDifficultyHitObject prevprevObj = (OsuDifficultyHitObject)current.Previous(i + 1);
@@ -61,7 +61,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
                 // if bpm is 120, 0.57
                 // if bpm is 170, 1.36
                 // 90 means almost bpm 170
-                effectiveRatio *= Math.Pow(100 / Math.Max(90, currObj.StrainTime), 2.5);
+                effectiveRatio *= Math.Pow(100 / Math.Max(90, currObj.StrainTime), 3);
 
                 if (currObj.BaseObject is Slider) // angle difference is into slider, this is easy acc window
                     effectiveRatio *= 0.25;
