@@ -10,8 +10,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
 {
     public class AngleComplexityEvaluator
     {
-        private const double angle_multiplier = 5.5;
-        private const double total_angle_ratio_multiplier = 4;
+        private const double angle_multiplier = 5;
+        private const double total_angle_ratio_multiplier = 2;
         private const int history_time_max = 5000; // 5 seconds of calculatingAngleComplexity max.
 
         public static double EvaluateDifficultyOf(DifficultyHitObject current)
@@ -56,6 +56,12 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
                 effectiveRatio *= Math.Clamp(distanceCurrent / (radius * 2), 0, 1);
                 effectiveRatio *= Math.Clamp(distancePrev / (radius * 2), 0, 1);
                 effectiveRatio *= Math.Clamp(distancePrevPrev / (radius * 2), 0, 1);
+
+                // nerf slow angle changes, buff fast angle changes.
+                // if bpm is 120, 0.57
+                // if bpm is 170, 1.36
+                // 90 means almost bpm 170
+                effectiveRatio *= Math.Pow(100 / Math.Max(90, currObj.StrainTime), 2.5);
 
                 if (currObj.BaseObject is Slider) // angle difference is into slider, this is easy acc window
                     effectiveRatio *= 0.25;
