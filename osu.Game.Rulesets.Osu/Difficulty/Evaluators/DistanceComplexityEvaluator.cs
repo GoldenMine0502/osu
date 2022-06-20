@@ -17,7 +17,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
         private const int history_time_max = 5000; // 5 seconds of complexities max.
         private static double calculateDistanceRatio(OsuDifficultyHitObject prevObj, OsuDifficultyHitObject currObj)
         {
-            //OsuHitObject prevBaseObj = (OsuHitObject)prevObj.BaseObject;
             OsuHitObject currBaseObj = (OsuHitObject)currObj.BaseObject;
 
             double scalingFactor = 52.0 / currBaseObj.Radius;
@@ -25,7 +24,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
             double radius = currBaseObj.Radius;
             double distance = currObj.LazyJumpDistance / scalingFactor; // not normalised
 
+            // stacked distance ratio. 0 when current object completely covers prev obj, 0~1 half stacked, and 1 not stacked
             double distanceRatioOfStacked = Math.Clamp(distance / (radius * 2), 0, 1);
+
+            // not stacked distance ratio. It is not for stacked notes, but it is used when the distance change is too large. this uses a multiple of the diameter.
             double distanceRatioOfNotStacked = Math.Max(0, (distance - (radius * 2) / (radius * 2)) * distance_ratio_not_stacked_multiplier);
 
             double totalDistanceRatio = distanceRatioOfStacked + distanceRatioOfNotStacked;

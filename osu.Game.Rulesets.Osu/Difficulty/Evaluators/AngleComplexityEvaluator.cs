@@ -22,51 +22,48 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
 
             int rhythmStart = 0;
 
-            while (rhythmStart < historicalNoteCount - 2 && current.StartTime - current.Previous(rhythmStart).StartTime < history_time_max)
+            while (rhythmStart < historicalNoteCount - 3 && current.StartTime - current.Previous(rhythmStart).StartTime < history_time_max)
                 rhythmStart++;
 
             for (int i = rhythmStart; i > 0; i--)
             {
+                OsuDifficultyHitObject nextObj = (OsuDifficultyHitObject)current.Next(0);
                 OsuDifficultyHitObject currObj = (OsuDifficultyHitObject)current.Previous(i - 1);
                 OsuDifficultyHitObject prevObj = (OsuDifficultyHitObject)current.Previous(i);
-                //OsuDifficultyHitObject lastObj = (OsuDifficultyHitObject)current.Previous(i + 1);
+                OsuDifficultyHitObject prevprevObj = (OsuDifficultyHitObject)current.Previous(i + 1);
 
                 OsuHitObject currBaseObj = (OsuHitObject)currObj.BaseObject;
 
-                double currHistoricalDecay = (history_time_max - (current.StartTime - currObj.StartTime)) / history_time_max; // scales note 0 to 1 from history to now
+                if (nextObj == null)
+                    continue;
 
-                //double currDelta = currObj.StrainTime;
-                //double prevDelta = prevObj.StrainTime;
-                //double lastDelta = lastObj.StrainTime;
+                double nextAngle = nextObj.Angle != null ? nextObj.Angle.Value : 0;
+                double currAngle = currObj.Angle != null ? currObj.Angle.Value : 0;
+
+                double currHistoricalDecay = (history_time_max - (current.StartTime - currObj.StartTime)) / history_time_max; // scales note 0 to 1 from history to now
 
                 double scalingFactor = 50.0 / currBaseObj.Radius;
 
-                //double currAngle = currObj.Angle != null ? currObj.Angle.Value : 0;
-                //double prevAngle = prevObj.Angle != null ? prevObj.Angle.Value : 0;
-
                 double radius = currBaseObj.Radius;
-                double distance = currObj.LazyJumpDistance / scalingFactor; // not normalised
+                double distanceNext = nextObj.LazyJumpDistance / scalingFactor; // not normalised
+                double distanceCurrent = currObj.LazyJumpDistance / scalingFactor; // not normalised
+                double distancePrev = prevObj.LazyJumpDistance / scalingFactor; // not normalised
+                double distancePrevPrev = prevprevObj.LazyJumpDistance / scalingFactor; // not normalised
                 double effectiveRatio = 1;
 
                 // stacked note nerf
-                effectiveRatio *= Math.Clamp(distance / (radius * 2), 0, 1);
+                effectiveRatio *= Math.Clamp(distanceNext / (radius * 2), 0, 1);
+                effectiveRatio *= Math.Clamp(distanceCurrent / (radius * 2), 0, 1);
+                effectiveRatio *= Math.Clamp(distancePrev / (radius * 2), 0, 1);
+                effectiveRatio *= Math.Clamp(distancePrevPrev / (radius * 2), 0, 1);
 
-                // nerf angle changes slowly, buff angle changes rapidly.
-                // when bpm is 100 = 0.66
-                // when bpm is 170 = 1.13
-                // almost 90 means bpm 170
-                //effectiveRatio *= 100.0 / Math.Max(90, currDelta);
-
-                if (currObj.BaseObject is Slider) // bpm change is into slider, this is easy acc window
+                if (currObj.BaseObject is Slider) // angle difference is into slider, this is easy acc window
                     effectiveRatio *= 0.25;
 
-                if (prevObj.BaseObject is Slider) // bpm change was from a slider, this is easier typically than circle -> circle
+                if (prevObj.BaseObject is Slider) // angle difference was from a slider, this is easier typically than circle -> circle
                     effectiveRatio *= 0.5;
 
-                //if (Math.Max(currDelta, prevDelta) < 1.25 * Math.Min(currDelta, prevDelta)) // previous increase happened a note ago, 1/1->1/2-1/4, dont want to buff this.
-                //    effectiveRatio *= 0.25;
-
-                double angleRatio = AngleDifference.EvaluateDifficultyOf(currObj) / currObj.StrainTime;
+                double angleRatio = calcAngleDifference(currAngle, nextAngle) / currObj.StrainTime;
 
                 double result = angleRatio * effectiveRatio * angle_multiplier * currHistoricalDecay;
 
@@ -76,7 +73,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
                     angleComplexitySum = 0;
             }
 
-            return angleComplexitySum * total_angle_ratio_multiplier; //produces multiplier that can be applied to strain. range [1, infinity) (not really though)
+            return angleComplexitySum * total_angle_ratio_multiplier;
         }
 
         private static double calcAngleDifference(double prevAngle, double currAngle)
@@ -84,7 +81,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
             double angle120 = Math.PI / 3 * 2;
             double angle45 = Math.PI / 4;
 
-            // peak pi/2 
+            // peak bonus when angle difference is pi/2 
             double angleDifference = Math.Abs(prevAngle - currAngle);
 
             double value = Math.Sin(angleDifference);

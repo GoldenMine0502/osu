@@ -25,36 +25,13 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         {
         }
 
-        //public override double DifficultyValue()
-        //{
-        //    var peaks = GetCurrentStrainPeaks().Where(p => p > 0);
-        //    List<double> strains = peaks.OrderByDescending(d => d).ToList();
-
-        //    double difficulty = 0;
-        //    foreach (double strain in strains.OrderByDescending(d => d))
-        //    {
-        //        difficulty += strain * 0.01;
-        //    }
-
-        //    return difficulty;
-        //}
-
-
-
         private double strainValueOf(DifficultyHitObject current)
         {
             double distanceComplexity = DistanceComplexityEvaluator.EvaluateDifficultyOf(current);
             double angleComplexity = AngleComplexityEvaluator.EvaluateDifficultyOf(current);
             double sliderVelocityComplexity = SVComplexityEvaluator.EvaluateDifficultyOf(current);
 
-            //var currObj = (OsuDifficultyHitObject)current;
-            //string timeStr = (int)(currObj.StartTime / 60000) + ":" + (int)((currObj.StartTime - ((int)currObj.StartTime / 60000) * 60000) / 1000) + "." + (int)Math.Round(currObj.StartTime % 1000);
-
-
             double value = distanceComplexity + angleComplexity + sliderVelocityComplexity;
-
-            //if (value >= 3)
-            //    Console.WriteLine(distanceComplexity + ", " + alternativeComplexity + ", " + sliderVelocityComplexity + ", " + timeStr);
 
             return value;
         }

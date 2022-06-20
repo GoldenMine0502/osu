@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
     public class SVComplexityEvaluator
     {
         private const double slider_velocity_cap = 0.35;
-        private const double slider_velocity_multiplier = 200;
+        private const double slider_velocity_multiplier = 250;
         private const double total_slider_velocity_multiplier = 1;
 
         private const int history_time_max = 5000; // 5 seconds of complexities max.
@@ -34,7 +34,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
             {
                 OsuDifficultyHitObject currObj = (OsuDifficultyHitObject)current.Previous(i - 1);
                 OsuDifficultyHitObject prevObj = (OsuDifficultyHitObject)current.Previous(i);
-                //OsuDifficultyHitObject lastObj = (OsuDifficultyHitObject)current.Previous(i + 1);
 
                 double currHistoricalDecay = (history_time_max - (current.StartTime - currObj.StartTime)) / history_time_max; // scales note 0 to 1 from history to now
 
@@ -43,7 +42,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
                 {
                     double currTravelVelocity = prevObj.TravelDistance / prevObj.TravelTime;
 
-                    if (lastTravelVelocity > 0)
+                    if (lastTravelVelocity >= 0)
                     {
                         // calculates velocity changes.
                         // gives a cap to ignore small velocity changes.
