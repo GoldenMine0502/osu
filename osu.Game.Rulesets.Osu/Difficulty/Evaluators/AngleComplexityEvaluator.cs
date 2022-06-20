@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
     public class AngleComplexityEvaluator
     {
         private const double angle_multiplier = 5;
-        private const double total_angle_ratio_multiplier = 1;
+        private const double total_angle_ratio_multiplier = 2;
         private const int history_time_max = 5000; // 5 seconds of calculatingAngleComplexity max.
 
         public static double EvaluateDifficultyOf(DifficultyHitObject current)
@@ -64,12 +64,12 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
                 effectiveRatio *= Math.Pow(100 / Math.Max(90, currObj.StrainTime), 3);
 
                 if (currObj.BaseObject is Slider) // angle difference is into slider, this is easy acc window
-                    effectiveRatio *= 0.25;
+                    effectiveRatio *= 0.8;
 
                 if (prevObj.BaseObject is Slider) // angle difference was from a slider, this is easier typically than circle -> circle
-                    effectiveRatio *= 0.5;
+                    effectiveRatio *= 0.9;
 
-                double angleRatio = calcAngleDifference(currAngle, nextAngle) / currObj.StrainTime;
+                double angleRatio = calcAngleDifference(currAngle, nextAngle) / nextObj.StrainTime;
 
                 double result = angleRatio * effectiveRatio * angle_multiplier * currHistoricalDecay;
 
