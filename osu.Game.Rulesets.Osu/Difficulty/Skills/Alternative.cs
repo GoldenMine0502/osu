@@ -5,16 +5,15 @@ using System;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Difficulty.Evaluators;
-using osu.Game.Rulesets.Osu.Difficulty.Preprocessing;
-using osu.Game.Rulesets.Osu.Objects;
 
 namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 {
     public class Alternative : OsuStrainSkill
     {
+        private const double alternative_cap = 0.5;
 
-        private double skillMultiplier => 11;
-        private double strainDecayBase => 0.3;
+        private double skillMultiplier => 15;
+        private double strainDecayBase => 0.2;
 
         private double currentStrain;
 
@@ -31,7 +30,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             double angleComplexity = AngleComplexityEvaluator.EvaluateDifficultyOf(current);
             double sliderVelocityComplexity = SVComplexityEvaluator.EvaluateDifficultyOf(current);
 
-            double value = distanceComplexity + angleComplexity + sliderVelocityComplexity;
+            // ignore small alternative value.
+            double value = Math.Max(distanceComplexity + angleComplexity + sliderVelocityComplexity - alternative_cap, 0);
 
             return value;
         }

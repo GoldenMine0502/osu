@@ -10,8 +10,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
 {
     public class DistanceComplexityEvaluator
     {
-        private const double distance_ratio_not_stacked_multiplier = 0.15;
-        private const double distance_ratio_multiplier = 1;
+        private const double distance_ratio_not_stacked_multiplier = 0.1;
+        private const double distance_ratio_multiplier = 2.5;
         private const double total_distance_ratio_multiplier = 0.25;
 
         private const int history_time_max = 5000; // 5 seconds of complexities max.
@@ -56,10 +56,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
 
                 double currHistoricalDecay = (history_time_max - (current.StartTime - currObj.StartTime)) / history_time_max; // scales note 0 to 1 from history to now
 
-                double prevDistanceValue = calculateDistanceRatio(lastObj, prevObj);
-                double currDistanceValue = calculateDistanceRatio(prevObj, currObj);
+                double prevDistanceValue = calculateDistanceRatio(lastObj, prevObj) / prevObj.StrainTime;
+                double currDistanceValue = calculateDistanceRatio(prevObj, currObj) / currObj.StrainTime;
 
-                double totalDistanceValue = Math.Abs(currDistanceValue - prevDistanceValue) / currObj.StrainTime * distance_ratio_multiplier;
+                double totalDistanceValue = Math.Abs(currDistanceValue - prevDistanceValue) * distance_ratio_multiplier;
 
                 distanceRatioComplexitySum += totalDistanceValue * currHistoricalDecay;
             }

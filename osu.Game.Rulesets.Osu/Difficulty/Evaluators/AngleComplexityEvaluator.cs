@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
     public class AngleComplexityEvaluator
     {
         private const double angle_multiplier = 5;
-        private const double total_angle_ratio_multiplier = 2;
+        private const double total_angle_ratio_multiplier = 4;
         private const int history_time_max = 5000; // 5 seconds of calculatingAngleComplexity max.
 
         public static double EvaluateDifficultyOf(DifficultyHitObject current)

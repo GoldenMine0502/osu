@@ -41,7 +41,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             countMiss = score.Statistics.GetValueOrDefault(HitResult.Miss);
             effectiveMissCount = calculateEffectiveMissCount(osuAttributes);
 
-            double multiplier = 1.05; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things.
+            double multiplier = 1.08; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things.
 
             if (score.Mods.Any(m => m is OsuModNoFail))
                 multiplier *= Math.Max(0.90, 1.0 - 0.02 * effectiveMissCount);
@@ -247,14 +247,13 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double rawAlternative = attributes.AlternativeDifficulty;
             double alternativeValue = Math.Pow(5.0 * Math.Max(1.0, rawAlternative / 0.0675) - 4.0, 3.0) / 100000.0;
 
-            double lengthBonus = 0.95 + 0.4 * Math.Min(1.0, totalHits / 2000.0) +
-                                 (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0);
+            // smaller lengthbonus than other skills
+            double lengthBonus = 0.95 + 0.2 * Math.Min(1.0, totalHits / 2000.0) +
+                                 (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.25 : 0.0);
             alternativeValue *= lengthBonus;
 
             if (score.Mods.Any(m => m is OsuModTouchDevice))
                 alternativeValue = Math.Pow(alternativeValue, 0.8);
-
-            //double alternativeValue = Math.Pow(rawAlternative, 2.0) * 25.0;
 
             // Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
             if (effectiveMissCount > 0)
@@ -262,11 +261,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             alternativeValue *= getComboScalingFactor(attributes);
 
-            // Account for shorter maps having a higher ratio of 0 combo/100 combo flashlight radius.
-            //alternativeValue *= 0.7 + 0.1 * Math.Min(1.0, totalHits / 200.0) +
-            //                   (totalHits > 200 ? 0.2 * Math.Min(1.0, (totalHits - 200) / 200.0) : 0.0);
-
-            // Scale the flashlight value with accuracy _slightly_.
+            // Scale the alternative value with accuracy _slightly_.
             alternativeValue *= 0.5 + accuracy / 2.0;
             // It is important to also consider accuracy difficulty when doing that.
             alternativeValue *= 0.98 + Math.Pow(attributes.OverallDifficulty, 2) / 2500;
